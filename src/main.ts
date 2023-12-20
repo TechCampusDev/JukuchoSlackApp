@@ -13,9 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { doPost } from './main';
+export function doPost(e: any) {
+  // Events APIからのPOSTを取得
+  // 参考→https://api.slack.com/events-api
+  const json = JSON.parse(e.postData.getDataAsString());
 
-const test = false;
-if (test) {
-  doPost(null);
+  // Events APIを使用する初回、URL Verificationのための記述
+  if (json.type === 'url_verification') {
+    return ContentService.createTextOutput(json.challenge);
+  }
 }

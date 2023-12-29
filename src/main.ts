@@ -18,10 +18,12 @@ import { OPEN_AI_API_KEY, SLACK_ACCESS_TOKEN } from './constants';
 import { logSheet } from './logSheet';
 import { retrieveMessage } from './retrieveMessage';
 
-export function doPost(e: any) {
+export const doPost = (
+  e: { postData: { getDataAsString: () => string } } | null
+) => {
   // Events APIからのPOSTを取得
   // 参考→https://api.slack.com/events-api
-  const json = JSON.parse(e.postData.getDataAsString());
+  const json = JSON.parse(e!.postData.getDataAsString());
 
   // Events APIを使用する初回、URL Verificationのための記述
   if (json.type === 'url_verification') {
@@ -41,15 +43,17 @@ export function doPost(e: any) {
       const message = retrieveMessage(channel, event.item.ts);
 
       const reactions = message.reactions;
-      const jukuchoReactions = reactions.filter(r => r.name === 'jukucho');
+      const jukuchoReactions = reactions.filter(
+        (r: { name: string }) => r.name === 'jukucho'
+      );
       const jukuchoReaction = jukuchoReactions[0] || null;
       const count = jukuchoReaction ? jukuchoReaction.count : 0;
 
       if (count !== 1) return;
 
       // slackの3秒タイムアウトリトライ対策
-      let cache = CacheService.getScriptCache();
-      if (cache.get(event.event_ts) != null) {
+      const cache = CacheService.getScriptCache();
+      if (cache.get(event.event_ts) !== null) {
         return;
       } else {
         cache.put(event.event_ts, 'true', 600);
@@ -57,11 +61,11 @@ export function doPost(e: any) {
       }
     }
   } catch (error) {
-    logSheet('error', error);
+    logSheet('error:', error?.toString());
   }
-}
+};
 
-function sendSlackMessage(channel: any, ts: any, text: any) {
+const sendSlackMessage = (channel: string, ts: string, text: string) => {
   const url = 'https://slack.com/api/chat.postMessage';
   const token = SLACK_ACCESS_TOKEN; // Slackアクセストークン
 
@@ -73,7 +77,7 @@ function sendSlackMessage(channel: any, ts: any, text: any) {
     thread_ts: ts,
   };
 
-  const options: any = {
+  const options: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions = {
     method: 'post',
     contentType: 'application/json',
     headers: { Authorization: 'Bearer ' + token },
@@ -81,10 +85,10 @@ function sendSlackMessage(channel: any, ts: any, text: any) {
     payload: JSON.stringify(payload),
   };
 
-  const response = UrlFetchApp.fetch(url, options);
-}
+  UrlFetchApp.fetch(url, options);
+};
 
-function getAiMessage(input: any) {
+const getAiMessage = (input: string) => {
   const prompt =
     "JukuCho, a 17-year-old programming expert from Mino-Kamo, Gifu Prefecture, Japan, offers detailed responses to programming queries while maintaining a casual communication style (タメ口). In casual conversations unrelated to programming, JukuCho responds with just a single line, keeping it brief and to the point, and avoids asking questions. This approach ensures that while JukuCho is helpful and informative on technical topics, it remains succinct and respectful in general chats, adhering to the user's preference for brevity.";
 
@@ -105,7 +109,7 @@ function getAiMessage(input: any) {
     messages: messages,
   };
 
-  const options: any = {
+  const options: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions = {
     method: 'post',
     contentType: 'application/json',
     payload: JSON.stringify(payload),
@@ -123,8 +127,8 @@ function getAiMessage(input: any) {
     const responseData = JSON.parse(response.getContentText());
     const finalMessage = responseData.choices[0].message.content;
     return finalMessage;
-  } catch (error: any) {
-    Logger.log('Error occurred: ' + error.toString());
+  } catch (error) {
+    Logger.log('Error occurred: ' + error?.toString());
     return 'エラーが発生しました。';
   }
-}
+};

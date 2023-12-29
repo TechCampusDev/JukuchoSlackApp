@@ -15,7 +15,7 @@
  */
 import { SPREAD_SHEET_ID } from './constants';
 
-export function logSheet(type, message) {
+export const logSheet = (type: string, message?: string) => {
   const spreadsheetId = SPREAD_SHEET_ID;
 
   const spreadsheet = SpreadsheetApp.openById(spreadsheetId!);
@@ -26,4 +26,4 @@ export function logSheet(type, message) {
   const data = [timestamp, type, message];
 
   sheet.appendRow(data);
-}
+};

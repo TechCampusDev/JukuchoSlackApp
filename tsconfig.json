@@ -11,8 +11,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "allowUnreachableCode": false,
-    "noImplicitAny": false
+    "allowUnreachableCode": false
   },
   "include": ["src/**/*", "test/**/*", "rollup.config.mjs"]
 }

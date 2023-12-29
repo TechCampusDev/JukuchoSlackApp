@@ -15,7 +15,7 @@ import { SLACK_ACCESS_TOKEN } from './constants';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export function retrieveMessage(channel: any, ts: any) {
+export const retrieveMessage = (channel: string, ts: string) => {
   const url = 'https://slack.com/api/conversations.history';
   const token = SLACK_ACCESS_TOKEN; // Slackアクセストークン
 
@@ -26,7 +26,7 @@ export function retrieveMessage(channel: any, ts: any) {
     inclusive: true,
   };
 
-  const options: any = {
+  const options: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions = {
     method: 'get',
     contentType: 'application/json',
     headers: { Authorization: 'Bearer ' + token },
@@ -36,9 +36,9 @@ export function retrieveMessage(channel: any, ts: any) {
 
   const response = UrlFetchApp.fetch(url, options);
 
-  var content = response.getContentText();
+  const content = response.getContentText();
 
   const jsonObject = JSON.parse(content);
 
   return jsonObject.messages[0];
-}
+};
